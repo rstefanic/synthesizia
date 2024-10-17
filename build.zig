@@ -29,12 +29,19 @@ pub fn build(b: *std.Build) void {
     // running `zig build`).
     b.installArtifact(lib);
 
+    const raylib = b.dependency("raylib", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
     const exe = b.addExecutable(.{
         .name = "synthesizia",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
+
+    exe.linkLibrary(raylib.artifact("raylib"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
