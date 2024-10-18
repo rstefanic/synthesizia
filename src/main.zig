@@ -3,14 +3,18 @@ const r = @cImport({
     @cInclude("raylib.h");
 });
 
+const Note = @import("Note.zig").Note;
+const Notes = @import("Note.zig").Notes;
+
 const SAMPLE_RATE = 44100;
 const SAMPLE_SIZE = 16;
 const CHANNELS = 1;
 const MAX_SAMPLES_PER_UPDATE = 4096;
 
+var note: Note = Notes[0];
+
 fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
-    const audio_frequency: f32 = 440.0 * 0.95;
-    const incr = audio_frequency / SAMPLE_RATE;
+    const incr = note.frequency / SAMPLE_RATE;
 
     var sineIdx: f32 = 0.0;
     var d: [*]c_short = @ptrCast(@alignCast(buffer));
@@ -43,6 +47,15 @@ pub fn main() !void {
     while (!r.WindowShouldClose()) {
         r.BeginDrawing();
         defer r.EndDrawing();
-        r.ClearBackground(r.BLACK);
+
+        note = Notes[0]; // default to the "rest note"
+        var i: usize = 1; // skip the "rest note" at index 0
+        while (i < Notes.len) : (i += 1) {
+            if (r.IsKeyDown(Notes[i].key)) {
+                note = Notes[i];
+            }
+        }
+
+        r.ClearBackground(note.color);
     }
 }
