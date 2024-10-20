@@ -6,6 +6,9 @@ const r = @cImport({
 const Note = @import("Note.zig").Note;
 const Notes = @import("Note.zig").Notes;
 
+// FULL_VOLUME is approx. half of 65536.0 to get
+// us close to 100% volume when cast to a c_short
+const FULL_VOLUME = 32000.0;
 const SAMPLE_RATE = 44100;
 const SAMPLE_SIZE = 16;
 const CHANNELS = 1;
@@ -14,16 +17,17 @@ const MAX_SAMPLES_PER_UPDATE = 4096;
 var note: Note = Notes[0];
 
 fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
-    const incr = note.frequency / SAMPLE_RATE;
+    const phase_rate = note.frequency / SAMPLE_RATE;
+    const tau: f32 = 2 * 3.14;
 
-    var sineIdx: f32 = 0.0;
+    var phase: f32 = 0.0;
     var d: [*]c_short = @ptrCast(@alignCast(buffer));
 
     var i: usize = 0;
     while (i < frames) : (i += 1) {
-        d[i] = @intFromFloat(32000.0 * @sin(2 * 3.14 * sineIdx));
-        sineIdx += incr;
-        if (sineIdx > 1.0) sineIdx -= 1.0;
+        d[i] = @intFromFloat(FULL_VOLUME * @sin(tau * phase));
+        phase += phase_rate;
+        if (phase > 1.0) phase -= 1.0;
     }
 }
 
