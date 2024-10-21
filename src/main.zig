@@ -18,17 +18,17 @@ var note: Note = Notes[0];
 var display_color: r.Color = r.BLACK;
 
 fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
-    const phase_rate = note.frequency / SAMPLE_RATE;
-    const tau: f32 = 2 * 3.14;
-
-    var phase: f32 = 0.0;
     var d: [*]c_short = @ptrCast(@alignCast(buffer));
+    var step: f32 = 0.0;
+
+    const rate = SAMPLE_RATE / note.frequency;
+    const step_size = (2 * 3.1415) / rate;
 
     var i: usize = 0;
     while (i < frames) : (i += 1) {
-        d[i] = @intFromFloat(FULL_VOLUME * @sin(tau * phase));
-        phase += phase_rate;
-        if (phase > 1.0) phase -= 1.0;
+        d[i] = @intFromFloat(FULL_VOLUME * @sin(step));
+        step += step_size;
+        if (step > 1.0) step -= 1.0;
     }
 }
 
