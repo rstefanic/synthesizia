@@ -15,6 +15,7 @@ const CHANNELS = 1;
 const MAX_SAMPLES_PER_UPDATE = 4096;
 
 var note: Note = Notes[0];
+var display_color: r.Color = r.BLACK;
 
 fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
     const phase_rate = note.frequency / SAMPLE_RATE;
@@ -49,9 +50,6 @@ pub fn main() !void {
     r.PlayAudioStream(stream);
 
     while (!r.WindowShouldClose()) {
-        r.BeginDrawing();
-        defer r.EndDrawing();
-
         note = Notes[0]; // default to the "rest note"
         var i: usize = 1; // skip the "rest note" at index 0
         while (i < Notes.len) : (i += 1) {
@@ -60,6 +58,38 @@ pub fn main() !void {
             }
         }
 
-        r.ClearBackground(note.color);
+        stepDisplayColor(&display_color, note.color);
+
+        r.BeginDrawing();
+        r.ClearBackground(display_color);
+        r.EndDrawing();
+    }
+}
+
+fn stepDisplayColor(display: *r.Color, target: r.Color) void {
+    const step = 1;
+
+    if (display.r != target.r) {
+        if (display.r > target.r) {
+            display.r -= step;
+        } else {
+            display.r += step;
+        }
+    }
+
+    if (display.g != target.g) {
+        if (display.g > target.g) {
+            display.g -= step;
+        } else {
+            display.g += step;
+        }
+    }
+
+    if (display.b != target.b) {
+        if (display.b > target.b) {
+            display.b -= step;
+        } else {
+            display.b += step;
+        }
     }
 }
