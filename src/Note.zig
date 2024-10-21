@@ -20,6 +20,6 @@ pub const Notes: [13]Note = .{
     .{ .frequency = 392.00, .color = r.ORANGE, .key = r.KEY_EIGHT }, // G
     .{ .frequency = 415.30, .color = r.PURPLE, .key = r.KEY_NINE }, // G#
     .{ .frequency = 440.00, .color = r.GREEN, .key = r.KEY_ZERO }, // A
-    .{ .frequency = 440.16, .color = r.VIOLET, .key = r.KEY_MINUS }, // A#
+    .{ .frequency = 466.20, .color = r.VIOLET, .key = r.KEY_MINUS }, // A#
     .{ .frequency = 493.88, .color = r.BLUE, .key = r.KEY_EQUAL }, // B
 };
