@@ -14,8 +14,14 @@ const SAMPLE_SIZE = 16;
 const CHANNELS = 1;
 const MAX_SAMPLES_PER_UPDATE = 4096;
 
+const Oscillator = enum {
+    SINE,
+    SQUARE,
+};
+
 var note: Note = Notes[0];
 var display_color: r.Color = r.BLACK;
+var oscillator: Oscillator = .SINE;
 
 fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
     var d: [*]c_short = @ptrCast(@alignCast(buffer));
@@ -26,9 +32,16 @@ fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
 
     var i: usize = 0;
     while (i < frames) : (i += 1) {
-        d[i] = @intFromFloat(FULL_VOLUME * @sin(step));
-        step += step_size;
-        if (step > 1.0) step -= 1.0;
+        if (oscillator == .SINE) {
+            step += step_size;
+            d[i] = @intFromFloat(FULL_VOLUME * @sin(step));
+        } else if (oscillator == .SQUARE) {
+            step += step_size;
+            d[i] = if (step > 1.0)
+                @intFromFloat(FULL_VOLUME)
+            else
+                0;
+        }
     }
 }
 
@@ -55,6 +68,15 @@ pub fn main() !void {
         while (i < Notes.len) : (i += 1) {
             if (r.IsKeyDown(Notes[i].key)) {
                 note = Notes[i];
+            }
+        }
+
+        // Toggle Oscillator
+        if (r.IsKeyPressed(r.KEY_SPACE)) {
+            if (oscillator == .SINE) {
+                oscillator = .SQUARE;
+            } else {
+                oscillator = .SINE;
             }
         }
 
