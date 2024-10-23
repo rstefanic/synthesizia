@@ -31,15 +31,17 @@ fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
 
     var i: usize = 0;
     while (i < frames) : (i += 1) {
+        step += step_size;
+
         if (oscillator == .SINE) {
-            step += step_size;
-            d[i] = @intFromFloat(FULL_VOLUME * @sin(step));
+            const sample: c_short = @intFromFloat(FULL_VOLUME * @sin(step));
+            d[i] = sample;
         } else if (oscillator == .SQUARE) {
-            step += step_size;
-            d[i] = if (step > 1.0)
+            const sample: c_short = @intFromFloat(FULL_VOLUME * @sin(step));
+            d[i] = if (sample > 0.0)
                 @intFromFloat(FULL_VOLUME)
             else
-                0;
+                -1.0;
         }
     }
 }
