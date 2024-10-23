@@ -26,9 +26,8 @@ var oscillator: Oscillator = .SINE;
 fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
     var d: [*]c_short = @ptrCast(@alignCast(buffer));
     var step: f32 = 0.0;
-
     const rate = SAMPLE_RATE / note.frequency;
-    const step_size = (2 * 3.1415) / rate;
+    const step_size = std.math.tau / rate;
 
     var i: usize = 0;
     while (i < frames) : (i += 1) {
