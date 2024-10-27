@@ -94,6 +94,22 @@ pub fn main() !void {
 
         r.BeginDrawing();
         r.ClearBackground(display_color);
+
+        const negative_color: r.Color = .{
+            .r = ~display_color.r,
+            .g = ~display_color.g,
+            .b = ~display_color.b,
+            .a = 255,
+        };
+
+        const osc_display_text = switch (oscillator) {
+            .SINE => "Sine wave",
+            .SQUARE => "Square wave",
+            .TRIANGLE => "Triangle wave",
+        };
+
+        r.DrawText(osc_display_text, 850, 740, 24, negative_color);
+
         r.EndDrawing();
     }
 }
