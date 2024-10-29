@@ -5,6 +5,7 @@ const r = @cImport({
 
 const Note = @import("Note.zig").Note;
 const Notes = @import("Note.zig").Notes;
+const Oscillator = @import("Oscillator.zig");
 
 // FULL_VOLUME is approx. half of 65536.0 to get
 // us close to 100% volume when cast to a c_short
@@ -14,15 +15,9 @@ const SAMPLE_SIZE = 16;
 const CHANNELS = 1;
 const MAX_SAMPLES_PER_UPDATE = 4096;
 
-const Oscillator = enum {
-    SINE,
-    SQUARE,
-    TRIANGLE,
-};
-
 var note: Note = Notes[0];
 var display_color: r.Color = r.BLACK;
-var oscillator: Oscillator = .SINE;
+var oscillator: Oscillator.Type = .SINE;
 
 fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
     var d: [*]c_short = @ptrCast(@alignCast(buffer));
@@ -30,27 +25,15 @@ fn AudioInputCallback(buffer: ?*anyopaque, frames: c_uint) callconv(.C) void {
 
     var i: usize = 0;
     while (i < frames) : (i += 1) {
-        if (oscillator == .SINE or oscillator == .SQUARE) {
-            const rate = SAMPLE_RATE / note.frequency;
-            const step_size = std.math.tau / rate;
-            step += step_size;
-
-            if (oscillator == .SINE) {
-                const sample: c_short = @intFromFloat(FULL_VOLUME * @sin(step));
-                d[i] = sample;
-            } else if (oscillator == .SQUARE) {
-                const sample: c_short = @intFromFloat(FULL_VOLUME * @sin(step));
-                d[i] = if (sample > 0.0)
-                    @intFromFloat(FULL_VOLUME)
-                else
-                    -1.0;
-            }
+        if (oscillator == .SINE) {
+            step += Oscillator.sineStep(SAMPLE_RATE, note.frequency);
+            d[i] = @intFromFloat(Oscillator.sineSample(FULL_VOLUME, step));
+        } else if (oscillator == .SQUARE) {
+            step += Oscillator.squareStep(SAMPLE_RATE, note.frequency);
+            d[i] = @intFromFloat(Oscillator.squareSample(FULL_VOLUME, step));
         } else if (oscillator == .TRIANGLE) {
-            step += note.frequency / SAMPLE_RATE;
-            if (step > 1.0) step -= 1.0;
-
-            const sample: c_short = @intFromFloat(2 * FULL_VOLUME * (@abs(2 * @mod(step, 1) - 1) - 0.5));
-            d[i] = sample;
+            step += Oscillator.triangleStep(SAMPLE_RATE, note.frequency);
+            d[i] = @intFromFloat(Oscillator.triangleSample(FULL_VOLUME, step));
         }
     }
 }
